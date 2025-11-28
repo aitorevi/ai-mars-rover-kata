@@ -4,14 +4,16 @@ import { Direction } from '../value-objects/direction.value-object';
 import { GridDimensions } from '../value-objects/grid-dimensions.value-object';
 import { Position } from '../value-objects/position.value-object';
 import { OutOfBoundsException } from '../exceptions/out-of-bounds.exception';
+import { ObstacleDetectedException } from '../exceptions/obstacle-detected.exception';
+import { Obstacle } from '../value-objects/obstacle.value-object';
 
 export class Grid {
   private constructor(
     private readonly dimensions: GridDimensions,
-    private readonly obstacles: any[],
+    private readonly obstacles: Obstacle[],
   ) {}
 
-  static create(dimensions: GridDimensions, obstacles: any[] = []): Grid {
+  static create(dimensions: GridDimensions, obstacles: Obstacle[] = []): Grid {
     return new Grid(dimensions, obstacles);
   }
 
@@ -28,5 +30,15 @@ export class Grid {
         `Cannot deploy rover at (${coordinates.x},${coordinates.y}): coordinates out of grid bounds`,
       );
     }
+
+    if (this.hasObstacleAt(coordinates)) {
+      throw new ObstacleDetectedException(
+        `Cannot deploy rover at (${coordinates.x},${coordinates.y}): obstacle detected`,
+      );
+    }
+  }
+
+  private hasObstacleAt(coordinates: Coordinates): boolean {
+    return this.obstacles.some((obstacle) => obstacle.blocksPosition(coordinates));
   }
 }

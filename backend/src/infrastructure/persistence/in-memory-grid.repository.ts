@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GridRepository } from '../../domain/port/grid.repository.port';
 import { Grid } from '../../domain/aggregates/grid.aggregate';
 import { GridDimensions } from '../../domain/value-objects/grid-dimensions.value-object';
+import { Obstacle } from '../../domain/value-objects/obstacle.value-object';
 
 @Injectable()
 export class InMemoryGridRepository implements GridRepository {
@@ -18,7 +19,7 @@ export class InMemoryGridRepository implements GridRepository {
   }
 
   // Método auxiliar para tests: configurar grid
-  setGrid(dimensions: GridDimensions, obstacles: any[] = []): void {
+  setGrid(dimensions: GridDimensions, obstacles: Obstacle[] = []): void {
     this.grid = Grid.create(dimensions, obstacles);
   }
 }

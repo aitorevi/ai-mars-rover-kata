@@ -4,6 +4,8 @@ import { Coordinates } from '../../../../src/domain/value-objects/coordinates.va
 import { Direction } from '../../../../src/domain/value-objects/direction.value-object';
 import { CardinalDirection } from '../../../../src/domain/value-objects/direction.value-object';
 import { OutOfBoundsException } from '../../../../src/domain/exceptions/out-of-bounds.exception';
+import { ObstacleDetectedException } from '../../../../src/domain/exceptions/obstacle-detected.exception';
+import { Obstacle } from '../../../../src/domain/value-objects/obstacle.value-object';
 
 describe('Grid Aggregate', () => {
   describe('deploying rover', () => {
@@ -69,6 +71,35 @@ describe('Grid Aggregate', () => {
       expect(() => {
         grid.deployRover('rover-1', invalidCoordinates, Direction.north());
       }).toThrow(OutOfBoundsException);
+    });
+
+    it('should reject deployment when obstacle blocks position', () => {
+      // Arrange: cuadrícula con obstáculo en (4,4)
+      const dimensions = GridDimensions.create(10, 10);
+      const obstaclePosition = Coordinates.create(4, 4);
+      const obstacles = [Obstacle.at(obstaclePosition)];
+      const grid = Grid.create(dimensions, obstacles);
+
+      // Act & Assert: desplegar en (4,4) debe fallar
+      expect(() => {
+        grid.deployRover('rover-1', obstaclePosition, Direction.north());
+      }).toThrow(ObstacleDetectedException);
+    });
+
+    it('should allow deployment adjacent to obstacle', () => {
+      // Arrange: cuadrícula con obstáculo en (4,4)
+      const dimensions = GridDimensions.create(10, 10);
+      const obstaclePosition = Coordinates.create(4, 4);
+      const obstacles = [Obstacle.at(obstaclePosition)];
+      const grid = Grid.create(dimensions, obstacles);
+      const adjacentCoordinates = Coordinates.create(5, 4);
+
+      // Act: desplegar en (5,4) debe ser permitido
+      const rover = grid.deployRover('rover-1', adjacentCoordinates, Direction.north());
+
+      // Assert
+      expect(rover).toBeDefined();
+      expect(rover.position.coordinates.equals(adjacentCoordinates)).toBe(true);
     });
   });
 });

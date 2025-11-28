@@ -2,6 +2,7 @@ import { Body, Controller, Post, HttpCode, HttpException, HttpStatus } from '@ne
 import { DeployRoverUseCase } from '../../application/usecases/deploy-rover.use-case';
 import { DeployRoverCommand } from '../../application/commands/deploy-rover.command';
 import { OutOfBoundsException } from '../../domain/exceptions/out-of-bounds.exception';
+import { ObstacleDetectedException } from '../../domain/exceptions/obstacle-detected.exception';
 
 class DeployRoverRequestDto {
   roverId: string;
@@ -33,6 +34,9 @@ export class DeployRoverController {
     } catch (error) {
       if (error instanceof OutOfBoundsException) {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      if (error instanceof ObstacleDetectedException) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
       }
       throw error;
     }
