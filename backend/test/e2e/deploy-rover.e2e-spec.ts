@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../../src/app.module';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+describe('Deploy Rover (e2e)', () => {
+  let app: INestApplication;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -20,12 +19,18 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET) - health check', () => {
+  it('POST /rovers/deploy - should deploy rover successfully', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .post('/rovers/deploy')
+      .send({
+        roverId: 'rover-1',
+        x: 3,
+        y: 5,
+        direction: 'NORTH',
+      })
+      .expect(201)
       .expect((res) => {
-        // The app responds but might be 404 since we removed the home endpoint
-        // This is expected after removing AppController
+        expect(res.body.message).toContain('Rover rover-1 deployed');
       });
   });
 });
