@@ -1,4 +1,4 @@
-import { Rover, MovementCommand } from '../../../../src/domain/entities/rover.entity';
+import { Rover, MovementCommand, RotationCommand } from '../../../../src/domain/entities/rover.entity';
 import { Position } from '../../../../src/domain/value-objects/position.value-object';
 import { Coordinates } from '../../../../src/domain/value-objects/coordinates.value-object';
 import { Direction, CardinalDirection } from '../../../../src/domain/value-objects/direction.value-object';
@@ -292,6 +292,184 @@ describe('Rover Entity', () => {
 
       expect(rover.position.coordinates.x).toBe(9);
       expect(rover.position.coordinates.y).toBe(9);
+    });
+  });
+
+  describe('rotating left', () => {
+    it('should face west when rotating left from north', () => {
+      // Arrange: rover at (5,5) facing north
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.north(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      // Act: rotate left
+      rover.rotate('L');
+
+      // Assert: rover now facing west, coordinates unchanged
+      expect(rover.position.coordinates.x).toBe(5);
+      expect(rover.position.coordinates.y).toBe(5);
+      expect(rover.position.direction.value).toBe(CardinalDirection.WEST);
+    });
+
+    it('should face south when rotating left from west', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.west(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('L');
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.SOUTH);
+      expect(rover.position.coordinates.x).toBe(5); // unchanged
+      expect(rover.position.coordinates.y).toBe(5); // unchanged
+    });
+
+    it('should face east when rotating left from south', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.south(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('L');
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.EAST);
+    });
+
+    it('should face north when rotating left from east', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.east(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('L');
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.NORTH);
+    });
+  });
+
+  describe('rotating right', () => {
+    it('should face east when rotating right from north', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.north(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('R');
+
+      expect(rover.position.coordinates.x).toBe(5); // unchanged
+      expect(rover.position.coordinates.y).toBe(5); // unchanged
+      expect(rover.position.direction.value).toBe(CardinalDirection.EAST);
+    });
+
+    it('should face south when rotating right from east', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.east(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('R');
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.SOUTH);
+    });
+
+    it('should face west when rotating right from south', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.south(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('R');
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.WEST);
+    });
+
+    it('should face north when rotating right from west', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.west(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('R');
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.NORTH);
+    });
+  });
+
+  describe('multiple rotations', () => {
+    it('should return to original direction after four left rotations', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.north(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('L');
+      rover.rotate('L');
+      rover.rotate('L');
+      rover.rotate('L');
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.NORTH);
+      expect(rover.position.coordinates.x).toBe(5); // still at same position
+      expect(rover.position.coordinates.y).toBe(5);
+    });
+
+    it('should return to original direction after four right rotations', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(3, 7),
+        Direction.east(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('R');
+      rover.rotate('R');
+      rover.rotate('R');
+      rover.rotate('R');
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.EAST);
+    });
+
+    it('should handle alternating rotations', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(5, 5),
+        Direction.north(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('L');  // WEST
+      rover.rotate('R');  // NORTH
+      rover.rotate('R');  // EAST
+      rover.rotate('L');  // NORTH
+
+      expect(rover.position.direction.value).toBe(CardinalDirection.NORTH);
+    });
+  });
+
+  describe('coordinates remain unchanged during rotation', () => {
+    it('should keep rover at same position regardless of rotations', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(3, 7),
+        Direction.north(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.rotate('L');
+      rover.rotate('R');
+      rover.rotate('R');
+      rover.rotate('L');
+      rover.rotate('L');
+
+      // Position unchanged after any number of rotations
+      expect(rover.position.coordinates.x).toBe(3);
+      expect(rover.position.coordinates.y).toBe(7);
     });
   });
 });

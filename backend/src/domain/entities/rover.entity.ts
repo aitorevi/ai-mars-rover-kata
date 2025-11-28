@@ -2,6 +2,7 @@ import { Position } from '../value-objects/position.value-object';
 import { Grid } from '../aggregates/grid.aggregate';
 
 export type MovementCommand = 'F' | 'B';
+export type RotationCommand = 'L' | 'R';
 
 export class Rover {
   private constructor(
@@ -33,5 +34,14 @@ export class Rover {
     grid.validateMovement(nextCoordinates);
 
     this._position = this._position.withCoordinates(nextCoordinates);
+  }
+
+  // Rotate rover left or right (no grid validation needed)
+  rotate(command: RotationCommand): void {
+    const newDirection = command === 'L'
+      ? this._position.direction.rotateLeft()
+      : this._position.direction.rotateRight();
+
+    this._position = this._position.withDirection(newDirection);
   }
 }

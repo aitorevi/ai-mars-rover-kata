@@ -22,4 +22,9 @@ export class Position {
   withCoordinates(newCoordinates: Coordinates): Position {
     return new Position(newCoordinates, this.direction);
   }
+
+  // Create new position with updated direction, keeping coordinates unchanged
+  withDirection(newDirection: Direction): Position {
+    return new Position(this.coordinates, newDirection);
+  }
 }

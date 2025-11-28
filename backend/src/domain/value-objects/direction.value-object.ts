@@ -30,6 +30,28 @@ export class Direction {
     return this.value === other.value;
   }
 
+  // Rotate 90 degrees counter-clockwise (left)
+  rotateLeft(): Direction {
+    const rotationMap: Record<CardinalDirection, CardinalDirection> = {
+      [CardinalDirection.NORTH]: CardinalDirection.WEST,
+      [CardinalDirection.WEST]: CardinalDirection.SOUTH,
+      [CardinalDirection.SOUTH]: CardinalDirection.EAST,
+      [CardinalDirection.EAST]: CardinalDirection.NORTH,
+    };
+    return new Direction(rotationMap[this.value]);
+  }
+
+  // Rotate 90 degrees clockwise (right)
+  rotateRight(): Direction {
+    const rotationMap: Record<CardinalDirection, CardinalDirection> = {
+      [CardinalDirection.NORTH]: CardinalDirection.EAST,
+      [CardinalDirection.EAST]: CardinalDirection.SOUTH,
+      [CardinalDirection.SOUTH]: CardinalDirection.WEST,
+      [CardinalDirection.WEST]: CardinalDirection.NORTH,
+    };
+    return new Direction(rotationMap[this.value]);
+  }
+
   // Calculate next coordinates based on movement direction
   calculateNextCoordinates(
     current: Coordinates,

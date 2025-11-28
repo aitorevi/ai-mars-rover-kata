@@ -90,4 +90,117 @@ describe('Direction Value Object', () => {
       });
     });
   });
+
+  describe('rotating left (counter-clockwise)', () => {
+    it('should face west when rotating left from north', () => {
+      // Arrange
+      const direction = Direction.north();
+
+      // Act
+      const rotated = direction.rotateLeft();
+
+      // Assert
+      expect(rotated.value).toBe(CardinalDirection.WEST);
+    });
+
+    it('should face south when rotating left from west', () => {
+      const direction = Direction.west();
+
+      const rotated = direction.rotateLeft();
+
+      expect(rotated.value).toBe(CardinalDirection.SOUTH);
+    });
+
+    it('should face east when rotating left from south', () => {
+      const direction = Direction.south();
+
+      const rotated = direction.rotateLeft();
+
+      expect(rotated.value).toBe(CardinalDirection.EAST);
+    });
+
+    it('should face north when rotating left from east', () => {
+      const direction = Direction.east();
+
+      const rotated = direction.rotateLeft();
+
+      expect(rotated.value).toBe(CardinalDirection.NORTH);
+    });
+
+    it('should return to original direction after four left rotations', () => {
+      const original = Direction.north();
+
+      const afterFourRotations = original
+        .rotateLeft()
+        .rotateLeft()
+        .rotateLeft()
+        .rotateLeft();
+
+      expect(afterFourRotations.value).toBe(original.value);
+    });
+  });
+
+  describe('rotating right (clockwise)', () => {
+    it('should face east when rotating right from north', () => {
+      const direction = Direction.north();
+
+      const rotated = direction.rotateRight();
+
+      expect(rotated.value).toBe(CardinalDirection.EAST);
+    });
+
+    it('should face south when rotating right from east', () => {
+      const direction = Direction.east();
+
+      const rotated = direction.rotateRight();
+
+      expect(rotated.value).toBe(CardinalDirection.SOUTH);
+    });
+
+    it('should face west when rotating right from south', () => {
+      const direction = Direction.south();
+
+      const rotated = direction.rotateRight();
+
+      expect(rotated.value).toBe(CardinalDirection.WEST);
+    });
+
+    it('should face north when rotating right from west', () => {
+      const direction = Direction.west();
+
+      const rotated = direction.rotateRight();
+
+      expect(rotated.value).toBe(CardinalDirection.NORTH);
+    });
+
+    it('should return to original direction after four right rotations', () => {
+      const original = Direction.south();
+
+      const afterFourRotations = original
+        .rotateRight()
+        .rotateRight()
+        .rotateRight()
+        .rotateRight();
+
+      expect(afterFourRotations.value).toBe(original.value);
+    });
+  });
+
+  describe('symmetry of rotations', () => {
+    it('should cancel out when rotating left then right', () => {
+      const original = Direction.north();
+
+      const result = original.rotateLeft().rotateRight();
+
+      expect(result.value).toBe(original.value);
+    });
+
+    it('should cancel out when rotating right then left', () => {
+      const original = Direction.east();
+
+      const result = original.rotateRight().rotateLeft();
+
+      expect(result.value).toBe(original.value);
+    });
+  });
 });
