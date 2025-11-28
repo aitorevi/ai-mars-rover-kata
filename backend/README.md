@@ -31,23 +31,24 @@ src/
 
 ### Deployed Features
 
-#### 1. Deploy Rover
-Deploy a rover to the grid at a specific location and orientation.
+#### 1. Rotate Rover (Left/Right)
+Rotate a rover 90 degrees left (counter-clockwise) or right (clockwise) without changing position.
 
 **Endpoint:**
 ```
-POST /rovers/deploy
+POST /rovers/:id/rotate
 ```
 
 **Request:**
 ```json
 {
-  "roverId": "rover-1",
-  "x": 5,
-  "y": 5,
-  "direction": "NORTH"
+  "command": "L"
 }
 ```
+
+Where `command` is:
+- `L` - Rotate left 90° (counter-clockwise)
+- `R` - Rotate right 90° (clockwise)
 
 **Response:**
 ```json
@@ -55,13 +56,14 @@ POST /rovers/deploy
   "roverId": "rover-1",
   "x": 5,
   "y": 5,
-  "direction": "NORTH"
+  "direction": "WEST"
 }
 ```
 
 **Errors:**
-- 400 Bad Request: Position outside grid bounds or occupied by obstacle
-- 409 Conflict: Position blocked by obstacle
+- 404 Not Found: Rover does not exist
+
+**Note:** Rotation is a pure orientation change - coordinates never change. No grid validation is needed since the rover doesn't move.
 
 #### 2. Move Rover (Forward/Backward)
 Move a rover forward or backward in its current direction.
@@ -96,6 +98,38 @@ Where `command` is:
 - 404 Not Found: Rover does not exist
 - 400 Bad Request: Movement would exceed grid boundaries
 - 409 Conflict: Movement blocked by obstacle
+
+#### 3. Deploy Rover
+Deploy a rover to the grid at a specific location and orientation.
+
+**Endpoint:**
+```
+POST /rovers/deploy
+```
+
+**Request:**
+```json
+{
+  "roverId": "rover-1",
+  "x": 5,
+  "y": 5,
+  "direction": "NORTH"
+}
+```
+
+**Response:**
+```json
+{
+  "roverId": "rover-1",
+  "x": 5,
+  "y": 5,
+  "direction": "NORTH"
+}
+```
+
+**Errors:**
+- 400 Bad Request: Position outside grid bounds or occupied by obstacle
+- 409 Conflict: Position blocked by obstacle
 
 ### Supported Directions
 - `NORTH` - Positive Y direction
@@ -189,6 +223,22 @@ curl -X POST http://localhost:3000/rovers/deploy \
   }'
 ```
 
+### Rotate Rover Left
+
+```bash
+curl -X POST http://localhost:3000/rovers/rover-1/rotate \
+  -H "Content-Type: application/json" \
+  -d '{"command": "L"}'
+```
+
+### Rotate Rover Right
+
+```bash
+curl -X POST http://localhost:3000/rovers/rover-1/rotate \
+  -H "Content-Type: application/json" \
+  -d '{"command": "R"}'
+```
+
 ### Move Rover Forward
 
 ```bash
@@ -205,10 +255,25 @@ curl -X POST http://localhost:3000/rovers/rover-1/move \
   -d '{"command": "B"}'
 ```
 
-### Sequential Movements
+### Sequential Commands
 
 ```bash
-# Move forward 3 times
+# Deploy rover, rotate left, then move forward 3 times
+curl -X POST http://localhost:3000/rovers/deploy \
+  -H "Content-Type: application/json" \
+  -d '{
+    "roverId": "rover-1",
+    "x": 5,
+    "y": 5,
+    "direction": "NORTH"
+  }'
+
+# Rotate left (now facing WEST)
+curl -X POST http://localhost:3000/rovers/rover-1/rotate \
+  -H "Content-Type: application/json" \
+  -d '{"command": "L"}'
+
+# Move forward 3 times (west direction)
 for i in {1..3}; do
   curl -X POST http://localhost:3000/rovers/rover-1/move \
     -H "Content-Type: application/json" \
@@ -218,35 +283,59 @@ done
 
 ## Implemented Tests
 
-### Domain Layer Tests (51 unit tests)
-- **Direction Value Object** (8 tests)
+### Domain Layer Tests (83 unit tests)
+- **Direction Value Object** (20 tests)
   - Forward movement in all 4 directions
   - Backward movement in all 4 directions
+  - Rotate left in all 4 directions
+  - Rotate right in all 4 directions
+  - Rotation symmetry (left/right cancellation)
 
-- **Position Value Object** (1 test)
+- **Position Value Object** (4 tests)
   - Creating new position with updated coordinates
+  - Creating new position with updated direction
+  - Immutability validation
+  - Chaining withCoordinates and withDirection
 
 - **Grid Aggregate** (15 tests)
   - Deployment validation (bounds and obstacles)
   - Movement validation (bounds and obstacles)
 
-- **Rover Entity** (18 tests)
+- **Rover Entity** (30 tests)
   - Forward movement in 4 directions
   - Backward movement in 2 directions
   - Obstacle detection and blocking
   - Boundary respect in 4 directions
   - Corner cases (origin and boundary positions)
+  - Rotate left in 4 directions
+  - Rotate right in 4 directions
+  - Multiple rotations (cycles, alternations)
+  - Coordinate invariance during rotation
 
 - **MoveRoverUseCase** (5 tests)
   - Successful forward/backward movements
   - Error handling (rover not found, out of bounds, obstacle)
   - State persistence
 
+- **RotateRoverUseCase** (5 tests)
+  - Successful left/right rotations
+  - Sequential rotations
+  - Error handling (rover not found)
+  - State persistence
+
 - **DeployRoverUseCase** (4 tests)
   - Successful deployment
   - Error handling
 
-### E2E Tests (12 tests)
+### E2E Tests (18 tests)
+- **Rotate Rover API** (6 tests)
+  - Rotate left successfully
+  - Rotate right successfully
+  - Non-existent rover (404)
+  - Sequential rotations
+  - 360° rotation cycle
+  - Position unchanged after rotations
+
 - **Move Rover API** (5 tests)
   - Forward movement
   - Backward movement
@@ -286,15 +375,33 @@ Boundaries throw exceptions rather than wrap around because:
 - Explicit error handling is better than silent wrapping
 - Easy to extend with wrapping strategy if needed
 
+### Why Rotation Doesn't Validate Grid
+The `Rover.rotate()` method does NOT receive Grid as parameter because:
+- Rotation doesn't change coordinates - there's no collision risk
+- No boundary validation needed (orientation has no bounds)
+- Grid is exclusively for spatial validation, not orientational
+- Simpler API: fewer parameters, easier to understand
+- This architecture allows for different behaviors in movement vs rotation
+
+### Why Direction Has Two Rotation Methods
+`Direction` has both `rotateLeft()` and `rotateRight()` methods instead of a single parameterized method because:
+- **Expressiveness:** `direction.rotateLeft()` is clearer than `direction.rotate(false)`
+- **Symmetry:** Mirrors the two distinct operations conceptually
+- **Type Safety:** Matches the domain language (left vs right are distinct actions)
+- **Future Extensibility:** Easy to add `rotate45()`, `rotateRight()`, etc. as distinct methods
+
 ## Extending the System
 
-### Future Features (Architectural Foundation Ready)
+### Completed Features
 
-1. **Rotation Commands (L/R)**
-   - Add `rotateLeft()` and `rotateRight()` to Direction
-   - Add 'L' | 'R' to MovementCommand type
-   - Update Rover to handle rotation
-   - Create RotateRoverUseCase
+1. **Rotation Commands (L/R)** - COMPLETED
+   - `rotateLeft()` and `rotateRight()` methods in Direction ✓
+   - `RotationCommand = 'L' | 'R'` type ✓
+   - `Rover.rotate()` method ✓
+   - `RotateRoverUseCase` and controller ✓
+   - 6 E2E tests covering rotation API ✓
+
+### Future Features (Architectural Foundation Ready)
 
 2. **Command Sequences**
    - Create ExecuteCommandSequenceUseCase
