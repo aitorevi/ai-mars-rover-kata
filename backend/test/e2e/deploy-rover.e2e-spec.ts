@@ -63,4 +63,51 @@ describe('Deploy Rover (e2e)', () => {
         // This test will pass once we add obstacle configuration to the endpoint
       });
   });
+
+  it('POST /rovers/deploy - should deploy rover at origin (0,0)', () => {
+    return request(app.getHttpServer())
+      .post('/rovers/deploy')
+      .send({
+        roverId: 'rover-at-origin',
+        x: 0,
+        y: 0,
+        direction: 'NORTH',
+      })
+      .expect(201)
+      .expect((res) => {
+        expect(res.body.message).toContain('Rover rover-at-origin deployed');
+        expect(res.body.message).toContain('(0,0)');
+      });
+  });
+
+  it('POST /rovers/deploy - should deploy rover at grid boundary (9,9)', () => {
+    return request(app.getHttpServer())
+      .post('/rovers/deploy')
+      .send({
+        roverId: 'rover-at-boundary',
+        x: 9,
+        y: 9,
+        direction: 'SOUTH',
+      })
+      .expect(201)
+      .expect((res) => {
+        expect(res.body.message).toContain('Rover rover-at-boundary deployed');
+        expect(res.body.message).toContain('(9,9)');
+      });
+  });
+
+  it('POST /rovers/deploy - should reject deployment beyond boundary (10,10)', () => {
+    return request(app.getHttpServer())
+      .post('/rovers/deploy')
+      .send({
+        roverId: 'rover-beyond-boundary',
+        x: 10,
+        y: 10,
+        direction: 'WEST',
+      })
+      .expect(400)
+      .expect((res) => {
+        expect(res.body.message).toContain('out of grid bounds');
+      });
+  });
 });

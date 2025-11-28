@@ -101,5 +101,49 @@ describe('Grid Aggregate', () => {
       expect(rover).toBeDefined();
       expect(rover.position.coordinates.equals(adjacentCoordinates)).toBe(true);
     });
+
+    it('should deploy rover at origin (0,0)', () => {
+      // Arrange: grid 10x10
+      const dimensions = GridDimensions.create(10, 10);
+      const grid = Grid.create(dimensions, []);
+      const originCoordinates = Coordinates.create(0, 0);
+
+      // Act: desplegar en origen
+      const rover = grid.deployRover('rover-1', originCoordinates, Direction.south());
+
+      // Assert
+      expect(rover).toBeDefined();
+      expect(rover.position.coordinates.x).toBe(0);
+      expect(rover.position.coordinates.y).toBe(0);
+      expect(rover.position.direction.value).toBe(CardinalDirection.SOUTH);
+    });
+
+    it('should deploy rover at grid boundary (9,9)', () => {
+      // Arrange: grid 10x10 - (9,9) es el límite máximo
+      const dimensions = GridDimensions.create(10, 10);
+      const grid = Grid.create(dimensions, []);
+      const boundaryCoordinates = Coordinates.create(9, 9);
+
+      // Act: desplegar en límite
+      const rover = grid.deployRover('rover-1', boundaryCoordinates, Direction.east());
+
+      // Assert
+      expect(rover).toBeDefined();
+      expect(rover.position.coordinates.x).toBe(9);
+      expect(rover.position.coordinates.y).toBe(9);
+      expect(rover.position.direction.value).toBe(CardinalDirection.EAST);
+    });
+
+    it('should reject deployment when trying to exceed boundary on both axes', () => {
+      // Arrange
+      const dimensions = GridDimensions.create(10, 10);
+      const grid = Grid.create(dimensions, []);
+      const invalidCoordinates = Coordinates.create(10, 10);
+
+      // Act & Assert
+      expect(() => {
+        grid.deployRover('rover-1', invalidCoordinates, Direction.west());
+      }).toThrow(OutOfBoundsException);
+    });
   });
 });
