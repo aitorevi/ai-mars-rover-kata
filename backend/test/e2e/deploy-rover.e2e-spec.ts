@@ -33,4 +33,19 @@ describe('Deploy Rover (e2e)', () => {
         expect(res.body.message).toContain('Rover rover-1 deployed');
       });
   });
+
+  it('POST /rovers/deploy - should return 400 when coordinates out of bounds', () => {
+    return request(app.getHttpServer())
+      .post('/rovers/deploy')
+      .send({
+        roverId: 'rover-1',
+        x: 15,
+        y: 5,
+        direction: 'NORTH',
+      })
+      .expect(400)
+      .expect((res) => {
+        expect(res.body.message).toContain('out of grid bounds');
+      });
+  });
 });
