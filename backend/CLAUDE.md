@@ -77,6 +77,11 @@ npm run lint          # Linter
 npm run format        # Formatear código
 ```
 
+## Manejo de Errores
+
+- Usar excepciones de dominio específicas: `ObstacleDetectedException`, `InvalidCommandException`
+- Las excepciones de dominio se transforman en respuestas HTTP en la capa de infraestructura
+
 ## Dominio Mars Rover
 
 El rover opera en una cuadrícula y responde a comandos:
