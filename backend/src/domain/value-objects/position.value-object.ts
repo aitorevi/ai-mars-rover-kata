@@ -17,4 +17,9 @@ export class Position {
       this.direction.equals(other.direction)
     );
   }
+
+  // Create new position with updated coordinates, keeping direction unchanged
+  withCoordinates(newCoordinates: Coordinates): Position {
+    return new Position(newCoordinates, this.direction);
+  }
 }

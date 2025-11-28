@@ -146,4 +146,59 @@ describe('Grid Aggregate', () => {
       }).toThrow(OutOfBoundsException);
     });
   });
+
+  describe('validating movement', () => {
+    it('should allow movement to valid position within bounds', () => {
+      // Arrange
+      const dimensions = GridDimensions.create(10, 10);
+      const grid = Grid.create(dimensions, []);
+      const targetCoordinates = Coordinates.create(5, 5);
+
+      // Act & Assert: should not throw
+      expect(() => {
+        grid.validateMovement(targetCoordinates);
+      }).not.toThrow();
+    });
+
+    it('should reject movement outside grid boundaries (X too large)', () => {
+      const dimensions = GridDimensions.create(10, 10);
+      const grid = Grid.create(dimensions, []);
+      const invalidCoordinates = Coordinates.create(10, 5);
+
+      expect(() => {
+        grid.validateMovement(invalidCoordinates);
+      }).toThrow(OutOfBoundsException);
+    });
+
+    it('should reject movement outside grid boundaries (Y too large)', () => {
+      const dimensions = GridDimensions.create(10, 10);
+      const grid = Grid.create(dimensions, []);
+      const invalidCoordinates = Coordinates.create(5, 15);
+
+      expect(() => {
+        grid.validateMovement(invalidCoordinates);
+      }).toThrow(OutOfBoundsException);
+    });
+
+    it('should reject movement to position with obstacle', () => {
+      const dimensions = GridDimensions.create(10, 10);
+      const obstaclePosition = Coordinates.create(4, 4);
+      const obstacles = [Obstacle.at(obstaclePosition)];
+      const grid = Grid.create(dimensions, obstacles);
+
+      expect(() => {
+        grid.validateMovement(obstaclePosition);
+      }).toThrow(ObstacleDetectedException);
+    });
+
+    it('should allow movement to grid edge (boundary case)', () => {
+      const dimensions = GridDimensions.create(10, 10);
+      const grid = Grid.create(dimensions, []);
+      const edgeCoordinates = Coordinates.create(9, 9);
+
+      expect(() => {
+        grid.validateMovement(edgeCoordinates);
+      }).not.toThrow();
+    });
+  });
 });

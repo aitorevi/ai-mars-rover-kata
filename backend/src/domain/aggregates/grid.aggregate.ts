@@ -24,6 +24,21 @@ export class Grid {
     return Rover.deploy(roverId, position);
   }
 
+  // Validate movement to target coordinates
+  validateMovement(targetCoordinates: Coordinates): void {
+    if (!this.dimensions.contains(targetCoordinates)) {
+      throw new OutOfBoundsException(
+        `Cannot move to (${targetCoordinates.x},${targetCoordinates.y}): coordinates out of grid bounds`,
+      );
+    }
+
+    if (this.hasObstacleAt(targetCoordinates)) {
+      throw new ObstacleDetectedException(
+        `Cannot move to (${targetCoordinates.x},${targetCoordinates.y}): obstacle detected`,
+      );
+    }
+  }
+
   private validateDeploymentPosition(coordinates: Coordinates): void {
     if (!this.dimensions.contains(coordinates)) {
       throw new OutOfBoundsException(

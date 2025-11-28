@@ -1,4 +1,7 @@
 import { Position } from '../value-objects/position.value-object';
+import { Grid } from '../aggregates/grid.aggregate';
+
+export type MovementCommand = 'F' | 'B';
 
 export class Rover {
   private constructor(
@@ -16,5 +19,19 @@ export class Rover {
 
   getId(): string {
     return this.id;
+  }
+
+  // Move rover forward or backward
+  move(command: MovementCommand, grid: Grid): void {
+    const isForward = command === 'F';
+
+    const nextCoordinates = this._position.direction.calculateNextCoordinates(
+      this._position.coordinates,
+      isForward,
+    );
+
+    grid.validateMovement(nextCoordinates);
+
+    this._position = this._position.withCoordinates(nextCoordinates);
   }
 }
