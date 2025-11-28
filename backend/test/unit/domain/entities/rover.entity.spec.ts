@@ -210,4 +210,88 @@ describe('Rover Entity', () => {
       expect(rover.position.coordinates.x).toBe(0);
     });
   });
+
+  describe('edge cases with corner positions', () => {
+    it('should move correctly from origin (0,0) facing east', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(0, 0),
+        Direction.east(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.move('F', grid);
+
+      expect(rover.position.coordinates.x).toBe(1);
+      expect(rover.position.coordinates.y).toBe(0);
+    });
+
+    it('should move correctly from origin (0,0) facing north', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(0, 0),
+        Direction.north(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.move('F', grid);
+
+      expect(rover.position.coordinates.x).toBe(0);
+      expect(rover.position.coordinates.y).toBe(1);
+    });
+
+    it('should move correctly from boundary (9,9) facing west', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(9, 9),
+        Direction.west(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.move('F', grid);
+
+      expect(rover.position.coordinates.x).toBe(8);
+      expect(rover.position.coordinates.y).toBe(9);
+    });
+
+    it('should move correctly from boundary (9,9) facing south', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(9, 9),
+        Direction.south(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      rover.move('F', grid);
+
+      expect(rover.position.coordinates.x).toBe(9);
+      expect(rover.position.coordinates.y).toBe(8);
+    });
+
+    it('should throw exception when moving backward from (0,0) facing north', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(0, 0),
+        Direction.north(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      expect(() => {
+        rover.move('B', grid);
+      }).toThrow(OutOfBoundsException);
+
+      expect(rover.position.coordinates.x).toBe(0);
+      expect(rover.position.coordinates.y).toBe(0);
+    });
+
+    it('should throw exception when moving backward from (9,9) facing south', () => {
+      const initialPosition = Position.at(
+        Coordinates.create(9, 9),
+        Direction.south(),
+      );
+      const rover = Rover.deploy('rover-1', initialPosition);
+
+      expect(() => {
+        rover.move('B', grid);
+      }).toThrow(OutOfBoundsException);
+
+      expect(rover.position.coordinates.x).toBe(9);
+      expect(rover.position.coordinates.y).toBe(9);
+    });
+  });
 });
